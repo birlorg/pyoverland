@@ -1,4 +1,4 @@
-'''
+"""
 Bottle-sqlite is a plugin that integrates SQLite3 with your Bottle
 application. It automatically connects to a database at the beginning of a
 request, passes the database handle to the route callback and closes the
@@ -24,11 +24,11 @@ Usage Example::
         if row:
             return template('showitem', page=row)
         return HTTPError(404, "Page not found")
-'''
+"""
 
 __author__ = "Marcel Hellkamp"
-__version__ = '0.2.0'
-__license__ = 'MIT'
+__version__ = "0.2.0"
+__license__ = "MIT"
 
 ### CUT HERE (see setup.py)
 
@@ -36,31 +36,31 @@ import sqlite3
 import inspect
 import bottle
 
-# PluginError is defined to bottle >= 0.10
-if not hasattr(bottle, 'PluginError'):
-    class PluginError(bottle.BottleException):
-        pass
-    bottle.PluginError = PluginError
-
 
 class SQLitePlugin(object):
-    ''' This plugin passes an sqlite3 database handle to route callbacks
+    """This plugin passes an sqlite3 database handle to route callbacks
     that accept a `db` keyword argument. If a callback does not expect
     such a parameter, no connection is made. You can override the database
-    settings on a per-route basis. '''
+    settings on a per-route basis."""
 
-    name = 'sqlite'
+    name = "sqlite"
     api = 2
 
-    ''' python3 moves unicode to str '''
-    try:
-        unicode
-    except NameError:
-        unicode = str
+    """ python3 moves unicode to str """
+    unicode = str
 
-    def __init__(self, dbfile=':memory:', autocommit=True, dictrows=True,
-                 keyword='db', text_factory=unicode, functions=None,
-                 aggregates=None, collations=None, extensions=None):
+    def __init__(
+        self,
+        dbfile=":memory:",
+        autocommit=True,
+        dictrows=True,
+        keyword="db",
+        text_factory=unicode,
+        functions=None,
+        aggregates=None,
+        collations=None,
+        extensions=None,
+    ):
         self.dbfile = dbfile
         self.autocommit = autocommit
         self.dictrows = dictrows
@@ -72,22 +72,24 @@ class SQLitePlugin(object):
         self.extensions = extensions or ()
 
     def setup(self, app):
-        ''' Make sure that other installed plugins don't affect the same
-            keyword argument.'''
+        """Make sure that other installed plugins don't affect the same
+        keyword argument."""
         for other in app.plugins:
             if not isinstance(other, SQLitePlugin):
                 continue
             if other.keyword == self.keyword:
-                raise PluginError("Found another sqlite plugin with "
-                                  "conflicting settings (non-unique keyword).")
+                raise PluginError(
+                    "Found another sqlite plugin with "
+                    "conflicting settings (non-unique keyword)."
+                )
             elif other.name == self.name:
-                self.name += '_%s' % self.keyword
+                self.name += "_%s" % self.keyword
 
     def apply(self, callback, route):
         # hack to support bottle v0.9.x
-        if bottle.__version__.startswith('0.9'):
-            config = route['config']
-            _callback = route['callback']
+        if bottle.__version__.startswith("0.9"):
+            config = route["config"]
+            _callback = route["callback"]
         else:
             config = route.config
             _callback = route.callback
@@ -95,27 +97,27 @@ class SQLitePlugin(object):
         # Override global configuration with route-specific values.
         if "sqlite" in config:
             # support for configuration before `ConfigDict` namespaces
-            g = lambda key, default: config.get('sqlite', {}).get(key, default)
+            g = lambda key, default: config.get("sqlite", {}).get(key, default)
         else:
-            g = lambda key, default: config.get('sqlite.' + key, default)
+            g = lambda key, default: config.get("sqlite." + key, default)
 
-        dbfile = g('dbfile', self.dbfile)
-        autocommit = g('autocommit', self.autocommit)
-        dictrows = g('dictrows', self.dictrows)
-        keyword = g('keyword', self.keyword)
-        text_factory = g('text_factory', self.text_factory)
-        functions = g('functions', self.functions)
-        aggregates = g('aggregates', self.aggregates)
-        collations = g('collations', self.collations)
-        extensions = g('extensions', self.extensions)
+        dbfile = g("dbfile", self.dbfile)
+        autocommit = g("autocommit", self.autocommit)
+        dictrows = g("dictrows", self.dictrows)
+        keyword = g("keyword", self.keyword)
+        text_factory = g("text_factory", self.text_factory)
+        functions = g("functions", self.functions)
+        aggregates = g("aggregates", self.aggregates)
+        collations = g("collations", self.collations)
+        extensions = g("extensions", self.extensions)
 
         # Test if the original callback accepts a 'db' keyword.
         # Ignore it if it does not need a database handle.
         # DeprecationWarning: inspect.getargspec() is deprecated since Python 3.0, use inspect.signature() or inspect.getfullargspec()
         argspec = inspect.getfullargspec(_callback)
         if keyword not in argspec.args:
-            #print(_callback)
-            #print("no keyword found, ignoring:%s",argspec)
+            # print(_callback)
+            # print("no keyword found, ignoring:%s",argspec)
             return callback
 
         def wrapper(*args, **kwargs):
@@ -159,5 +161,6 @@ class SQLitePlugin(object):
 
         # Replace the route callback with the wrapped one.
         return wrapper
+
 
 Plugin = SQLitePlugin

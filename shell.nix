@@ -12,4 +12,4 @@ with pkgs.python3Packages;
     #};
   #};
 #in
-pkgs.mkShell { buildInputs = [ rich hypothesis pytest mypy pylint click bottle ]; }
+pkgs.mkShell { buildInputs = [ rich hypothesis pytest mypy pylint click bottle black ]; }
