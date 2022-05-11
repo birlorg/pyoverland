@@ -2468,11 +2468,12 @@ def static_file(filename, root, mimetype='auto', download=False, charset='UTF-8'
             original filename is used (default: False).
         :param charset: The charset to use for files with a ``text/*``
             mime-type. (default: UTF-8)
+        :param headers: extre headers to send.
     """
 
     root = os.path.abspath(root) + os.sep
     filename = os.path.abspath(os.path.join(root, filename.strip('/\\')))
-    headers = dict()
+    headers = response.headers
 
     if not filename.startswith(root):
         return HTTPError(403, "Access denied.")

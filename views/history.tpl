@@ -5,8 +5,8 @@
   <!-- Basic Page Needs
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <meta charset="utf-8">
-  <title>pyOverlander - now</title>
-  <meta name="description" content="Where am I now?">
+  <title>pyOverlander - history</title>
+  <meta name="description" content="history">
   <meta name="author" content="zie@zie.one">
 
   <!-- Mobile Specific Metas
@@ -42,10 +42,7 @@
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 <div class="section top">
   <div class="container">
-        <h4>Where am I?</h4>
-        <p>My last recorded location was on <time datetime={{now['timestamp']}}>{{now['human_time']}}</time> 
-, which was about {{now['time_ago']}} at these coordinates: ({{now['latitude']}}, {{now['longitude']}}).</P>
-	You can map me on openstreetmaps <a href="{{now['openstreetmap_url']}}">here</A>
+        <h4>My history</h4>
 	</div>
 <div class="section map">
 <div id="map" style="width: 600px; height: 400px;"></div>
@@ -58,6 +55,7 @@
 <P>Turtle Image:  ID <a href="https://www.dreamstime.com/cheerful-turtle-icon-cartoon-illustration-cheerful-turtle-vector-icon-web-cheerful-turtle-icon-cartoon-style-image113535149#_">113535149</a> © Anatolii Riabokon | Dreamstime.com 
 </footer>
 <script>
+% now = dat[1]
 var map = L.map('map').setView([{{now['big_lat']}}, {{now['big_long']}}], 13);
 L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -77,6 +75,8 @@ var turtleIcon = L.icon({
     shadowAnchor: [4, 62],  // the same for the shadow
     popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
 });
-var marker = L.marker([{{now['latitude']}}, {{now['longitude']}}], {icon: turtleIcon, alt: 'Me'}).addTo(map).bindPopup("Turtle's location");
+% for now in dat:
+	var marker = L.marker([{{now['latitude']}}, {{now['longitude']}}], {icon: turtleIcon, alt: 'Me'}).addTo(map).bindPopup("{{now['human_time']}}");
+% end
 </script>
 </html>

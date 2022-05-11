@@ -23,38 +23,44 @@ import timeit
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
+
 class AuthorizationError(Exception):
     """Exception for Auth"""
 
-def authenticate_user(db,email,password):
+
+def authenticate_user(db, email, password):
     """ran by bottle, auth users
     called via main.py/bottle request decorator
 
     Either raise an exception or return a () of email and extra{}
 
-    uses DB table users w/ columns: email, salt, hashed_password , valid , extra 
+    uses DB table users w/ columns: email, salt, hashed_password , valid , extra
     """
     qry = "select email,salt,hashed_password,extra where valid is true and email=?;"
     row = db.execute(qry, (email,)).fetchone()
     if not row:
-        log.debug("auth: no valid user entry found for: %s",email)
-        raise AuthorizationError({
-            "error":True,
-            "code":"unauthorized_user",
-            "description":"Unauthorized user"
-            })
-    password = encrypt_password(password,salt=row['salt'])
-    if not compare(row['hashed_password'],password):
-        log.debug("auth: password compare failed: %s",email)
-        raise AuthorizationError({
-            "error":True,
-            "code":"unauthorized_user",
-            "description":"Unauthorized user"
-            })
-    return row['email'], json.loads(row['extra'])
+        log.debug("auth: no valid user entry found for: %s", email)
+        raise AuthorizationError(
+            {
+                "error": True,
+                "code": "unauthorized_user",
+                "description": "Unauthorized user",
+            }
+        )
+    password = encrypt_password(password, salt=row["salt"])
+    if not compare(row["hashed_password"], password):
+        log.debug("auth: password compare failed: %s", email)
+        raise AuthorizationError(
+            {
+                "error": True,
+                "code": "unauthorized_user",
+                "description": "Unauthorized user",
+            }
+        )
+    return row["email"], json.loads(row["extra"])
 
 
-def authenticate_token(db,token):
+def authenticate_token(db, token):
     """
     verify authentication token
     called via main.py/bottle request decorator
@@ -66,13 +72,21 @@ def authenticate_token(db,token):
     qry = "select rowid,token,email,device_id,extra from tokens where valid is true and token=?;"
     row = db.execute(qry, (token,)).fetchone()
     if not row:
-        log.debug("auth: no valid user entry found for: %s",token)
-        raise AuthorizationError({
-            "error":True,
-            "code":"unauthorized_user",
-            "description":"Unauthorized user"
-            })
-    return {'rowid':row['rowid'], 'email':row['email'], 'device_id':row['device_id'], 'extra':json.loads(row['extra'])}
+        log.debug("auth: no valid user entry found for: %s", token)
+        raise AuthorizationError(
+            {
+                "error": True,
+                "code": "unauthorized_user",
+                "description": "Unauthorized user",
+            }
+        )
+    return {
+        "rowid": row["rowid"],
+        "email": row["email"],
+        "device_id": row["device_id"],
+        "extra": json.loads(row["extra"]),
+    }
+
 
 def encrypt_password(passwd, salt=None, iteration_count=250000):
     """
