@@ -45,10 +45,28 @@
         <h4>Where am I?</h4>
         <p>My last recorded location was on <time datetime={{now['timestamp']}}>{{now['human_time']}}</time> 
 , which was about {{now['time_ago']}} at these coordinates: ({{now['latitude']}}, {{now['longitude']}}).</P>
-	You can map me on openstreetmaps <a href="{{now['openstreetmap_url']}}">here</A>
-	</div>
+	
+<P>Different mapping platforms:
+<UL>
+<LI><a href="{{now['apple_maps_url']}}">Apple Maps</A></LI>
+<LI><a href="{{now['openstreetmap_url']}}">OpenStreetMap</A></LI>
+</UL>
+<h4>My Weather:</h4>
+% if now['weather']:
+	% if now['weather']['alerts']: 
+		<P>{{now['weather']['alerts']}}</P>
+	% end
+<table id="weather" border=1>
+	% for forecast in now['weather']['forecasts']:
+	<tr><td>{{forecast['name']}}</td><td>{{forecast['temperature']}}{{forecast['temperatureUnit']}}</td><td>{{forecast['detailedForecast']}}</td></tr>
+<!--	<P>{{now['weather']['forecast']['detailedForecast']}}</P> -->
+	% end
+</table>
+% end
+</div>
+<h4>My map:</h4>
 <div class="section map">
-<div id="map" style="width: 600px; height: 400px;"></div>
+<div id="map" style="width: 800px; height: 600px;"></div>
 </div>
 
 <!-- End Document

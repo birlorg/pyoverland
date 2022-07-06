@@ -19,9 +19,10 @@ import time
 
 import bottle
 from bottle import Bottle, run, request, response, static_file, template, auth_basic
-
+bottle.BaseRequest.MEMFILE_MAX = 202400
 import bottle_sqlite as sqlite
 import authlib
+import weatherapi
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
@@ -71,7 +72,9 @@ class JSONErrorBottle(Bottle):
         else:
             log.info("error handler: %s", pprint.pformat(res))
             # response.content_type = 'application/json'
-            return json.dumps(dict(error=res.body, status_code=res.status_code))
+            r = json.dumps(dict(error=res.body, status_code=res.status_code))
+            print(r)
+            return r
 
 
 app = JSONErrorBottle()
@@ -176,6 +179,7 @@ def server_static(filepath):
 @app.get("/now")
 def now(db):
     """show most recent location"""
+    log.info("now: Request from:%s" % bottle.request.environ['HTTP_X_FORWARDED_FOR'])
     qry = "select timestamp,lat,long from locations order by timestamp desc limit 1;"
     row = db.execute(qry).fetchone()
     # Convert to python datetime:
@@ -185,7 +189,9 @@ def now(db):
     long = row["long"]
     big_lat = str(lat)[0:7]
     big_long = str(long)[0:8]
-    url = f"https://www.openstreetmap.org/?mlat={lat}&mlon={long}#map=12%2F{big_lat}%2F{big_long}&layers=N"
+    omap_url = f"https://www.openstreetmap.org/?mlat={lat}&mlon={long}#map=12%2F{big_lat}%2F{big_long}&layers=N"
+    amap_url = f"https://maps.apple.com/?sll={lat},{long}&address=%28{lat}%2C{long}%29&z=10&t=m"
+    weather = weatherapi.fetch_weather(big_lat,big_long)
     now = {
         "timestamp": row["timestamp"],
         "human_time": az_time.strftime("%Y/%m/%d %I:%M:%S %p %Z"),
@@ -193,15 +199,18 @@ def now(db):
         "big_long": big_long,
         "latitude": lat,
         "longitude": long,
-        "openstreetmap_url": url,
+        "openstreetmap_url": omap_url,
+        "apple_maps_url": amap_url,
         "time_ago": time_ago(now_dt.timestamp()),
+        "weather": weather,
     }
     return template("now", now=now)
 
 @app.get("/history")
 def history(db):
     """Show all history"""
-    qry = "select timestamp,lat,long from locations order by timestamp desc;"
+    log.info("history: Request from:%s" % bottle.request.environ['HTTP_X_FORWARDED_FOR'])
+    qry = "select timestamp,lat,long from locations where date(timestamp) > DATE('now', '-30 days') order by timestamp desc;" 
     rows = db.execute(qry).fetchall()
     dat = []
     for row in rows:
@@ -224,7 +233,14 @@ def history(db):
             "time_ago": time_ago(now_dt.timestamp()),
         }
         dat.append(now)
-    return template("history", dat=dat)
+    step = 0
+    if len(dat) > 1000:
+        length = len(dat)
+        step = int(length/1000)
+        log.info("length > 1000 @ %s, stepping by %s" % (length, step))
+        dat = dat[0:length:step]
+    log.info("sending %s records to user" % len(dat))
+    return template("history", dat=dat, step=step)
 
 def time_ago(ts):
     """calculate a human understandable time ago, given a unix timestamp"""

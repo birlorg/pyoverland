@@ -43,9 +43,11 @@
 <div class="section top">
   <div class="container">
         <h4>My history</h4>
+	<P>History is limited to an evenly distributed 1,000 records across the last 30 days.</P>
+	<a href="/overland/now">Go back to now view</a>
 	</div>
 <div class="section map">
-<div id="map" style="width: 600px; height: 400px;"></div>
+<div id="map" style="width: 1000px; height: 800px;"></div>
 </div>
 
 <!-- End Document
@@ -76,7 +78,7 @@ var turtleIcon = L.icon({
     popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
 });
 % for now in dat:
-	var marker = L.marker([{{now['latitude']}}, {{now['longitude']}}], {icon: turtleIcon, alt: 'Me'}).addTo(map).bindPopup("{{now['human_time']}}");
+	var marker = L.marker([{{now['latitude']}}, {{now['longitude']}}], {icon: turtleIcon, alt: 'Me'}).addTo(map).bindPopup("{{now['human_time']}} : <a href={{now['openstreetmap_url']}}>openstreetmap</a>");
 % end
 </script>
 </html>
