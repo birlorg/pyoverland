@@ -28,13 +28,13 @@
   
   <!-- Map
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+<link rel="stylesheet" href="static/leaflet.css"
    integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
-   crossorigin=""/>
+   />
  <!-- Make sure you put this AFTER Leaflet's CSS -->
- <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+ <script src="static/leaflet.js"
    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
-   crossorigin=""></script>
+   ></script>
 </head>
 <body>
 
@@ -51,20 +51,27 @@
 <LI><a href="{{now['apple_maps_url']}}">Apple Maps</A></LI>
 <LI><a href="{{now['openstreetmap_url']}}">OpenStreetMap</A></LI>
 </UL>
-<h4>My Weather:</h4>
+<h3>My Weather:</h3>
 % if now['weather']:
 	% if now['weather']['alerts']: 
-		<P>{{now['weather']['alerts']}}</P>
+	<h4>Alerts:</h4>
+		<UL>
+		% for alert in now['weather']['alerts']:
+		<LI>{{alert['headline']}}</LI>
+		</UL>
+		% end
 	% end
 <table id="weather" border=1>
 	% for forecast in now['weather']['forecasts']:
 	<tr><td>{{forecast['name']}}</td><td>{{forecast['temperature']}}{{forecast['temperatureUnit']}}</td><td>{{forecast['detailedForecast']}}</td></tr>
 <!--	<P>{{now['weather']['forecast']['detailedForecast']}}</P> -->
 	% end
-</table>
+	</table>
+% else:
+<P>Unforunately api.weather.gov is being mean at the moment, refresh to try again.</P>
 % end
 </div>
-<h4>My map:</h4>
+<h3>My Map:</h3>
 <div class="section map">
 <div id="map" style="width: 800px; height: 600px;"></div>
 </div>

@@ -252,7 +252,7 @@ def create_db(dbpath):
 
     This is misery, but it works.
     During dev, I altered columns and stuff a lot, so I created this mess to recreate the DB every time
-    while only defining the tables and columns one.
+    while only defining the tables and columns once.
     obviously some sort of ORM would be better, but I want no dependencies.
 
     So we have this:
@@ -265,7 +265,7 @@ def create_db(dbpath):
        BEGIN
        INSERT INTO audit_log(table_name, event_type, event_date, table_id, new) VALUES ('tokens','insert',datetime('now'), NEW.rowid,json_object('token',NEW.token,'email',NEW.email,'valid',NEW.valid,'device_id',NEW.device_id,'extra',NEW.extra,'note',NEW.note) );
        END;
-       insert into tokens VALUES ('mytoken','me@example.com',True,'myphone','','token for my iphone');
+       insert into tokens capabilities ('mytoken','me@example.com','["admin"]','True,'myphone','','token for my iphone');
     """
     tables = {
         "locations": {
@@ -287,10 +287,12 @@ def create_db(dbpath):
             "new": "JSON",
             "message": "TEXT",
         },
-        "tokens": {
+        "capabilities": {
             "rowid": "INTEGER PRIMARY KEY",
-            "token": "TEXT not null unique",
+            "token": "TEXT NOT NULL UNIQUE",
             "email": "TEXT NOT NULL UNIQUE",
+            "perms": "JSON",
+            "used": "INTEGER",
             "valid": "BOOL",
             "device_id": "TEXT",
             "extra": "JSON",

@@ -32,6 +32,6 @@ def get_weather(lat,long):
 def fetch_weather(lat,long):
     try:
         sync_result = sync.coroutine(fetch(lat,long))
-    except aiohttp.client_exceptions.ClientResponseError:
+    except:
         return None
     return sync_result
