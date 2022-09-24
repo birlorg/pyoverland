@@ -5,7 +5,7 @@ import aiohttp
 import pynws
 import atos as sync
 
-USERID = "tara@birl.org"
+USERID = "zie@birl.org"
 
 
 async def fetch(lat,long):
