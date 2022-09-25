@@ -53,18 +53,18 @@
 </UL>
 <h3>My Weather:</h3>
 % if now['weather']:
-	% if now['weather']['alerts']: 
+	% if now['weather'].alerts: 
 	<h4>Alerts:</h4>
 		<UL>
-		% for alert in now['weather']['alerts']:
-		<LI>{{alert['headline']}}</LI>
+		% for alert in now['weather'].alerts:
+		<LI>{{alert.headline}}</LI>
 		</UL>
 		% end
 	% end
 <table id="weather" border=1>
-	% for forecast in now['weather']['forecasts']:
-	<tr><td>{{forecast['name']}}</td><td>{{forecast['temperature']}}{{forecast['temperatureUnit']}}</td><td>{{forecast['detailedForecast']}}</td></tr>
-<!--	<P>{{now['weather']['forecast']['detailedForecast']}}</P> -->
+	% for forecast in now['weather'].properties.periods:
+	<tr><td>{{forecast.name}}</td><td>{{forecast.temperature}}{{forecast.temperatureUnit}}</td><td>{{forecast.detailedForecast}}</td></tr>
+<!--	<P>now['weather']['forecast']['detailedForecast']</P> -->
 	% end
 	</table>
 % else:

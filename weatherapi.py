@@ -104,6 +104,7 @@ class Forecast(pydantic.BaseModel):
     geometry: dict
     properties: ForecastProperties
     type: str
+    alerts: Union[str,None]
 
 
 class WeatherGov:
@@ -119,8 +120,8 @@ class WeatherGov:
         """Get API location given lat/long
         returns Location class
         """
-        lat = round(lat, 4)
-        long = round(long, 4)
+        lat = round(float(lat), 4)
+        long = round(float(long), 4)
         r = self.client.get(f"/points/{lat},{long}")
         # return Location(r)
         return Location.parse_raw(r.text)
@@ -165,7 +166,7 @@ def get_weather(lat, long):
     loop.run_until_complete(fetch(lat, long))
 
 
-def fetch_weather(lat, long):
+def async_fetch_weather(lat, long):
     try:
         sync_result = sync.coroutine(fetch(lat, long))
     except:
