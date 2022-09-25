@@ -7,11 +7,11 @@
   <meta charset="utf-8">
   <title>pyOverlander - now</title>
   <meta name="description" content="Where am I now?">
-  <meta name="author" content="zie@zie.one">
+  <meta name="author" content="zie@turtle.st">
 
   <!-- Mobile Specific Metas
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- FONT
   <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
@@ -35,8 +35,8 @@
  <script src="static/leaflet.js"
    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
    ></script>
-<link rel="stylesheet" href="static/style.css"
-   integrity="sha384-Q8ArFov05rPVloUmNoIz0u9anDtXjofxQNUHX9s7JuXmL15tsBL67LYmMJrVokiN"
+<link rel="stylesheet" href="static/css/water.css"
+   integrity="sha384-eHoWBq4xGyEfS3rmZe6gvzlNS/nNJhiPPbKCJN1cQHJukU+q6ji3My2fJGYd1EBo"
    />
 </head>
 <body>
