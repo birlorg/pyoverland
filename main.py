@@ -19,6 +19,7 @@ import time
 
 import bottle
 from bottle import Bottle, run, request, response, static_file, template, auth_basic
+
 bottle.BaseRequest.MEMFILE_MAX = 202400
 import bottle_sqlite as sqlite
 import authlib
@@ -35,22 +36,24 @@ tz_mst = timezone(timedelta(hours=-7), "MST")
 
 global myconfig
 
+
 def fix_environ_middleware(app):
     def fixed_app(environ, start_response):
         global myconfig
         if len(myconfig.keys()) > 0:
-            #log.debug('url:%s',myconfig['url_scheme'])
-            if 'url_scheme' in myconfig:
-                environ['wsgi.url_scheme'] = myconfig['url_scheme']
-            if 'url_domain' in myconfig:
-                environ['HTTP_X_FORWARDED_HOST'] = myconfig['url_domain']
-            if 'url_proxy_hack' in myconfig:
-                ph = myconfig['url_proxy_hack'] 
+            # log.debug('url:%s',myconfig['url_scheme'])
+            if "url_scheme" in myconfig:
+                environ["wsgi.url_scheme"] = myconfig["url_scheme"]
+            if "url_domain" in myconfig:
+                environ["HTTP_X_FORWARDED_HOST"] = myconfig["url_domain"]
+            if "url_proxy_hack" in myconfig:
+                ph = myconfig["url_proxy_hack"]
                 phlen = len(ph)
-                if ph == environ['PATH_INFO'][:phlen]:
-                    environ['PATH_INFO'] = environ['PATH_INFO'].replace(ph,'',1)
-            #log.debug('hacks applied, new path:%s',environ['PATH_INFO'])
+                if ph == environ["PATH_INFO"][:phlen]:
+                    environ["PATH_INFO"] = environ["PATH_INFO"].replace(ph, "", 1)
+            # log.debug('hacks applied, new path:%s',environ['PATH_INFO'])
         return app(environ, start_response)
+
     return fixed_app
 
 
@@ -79,6 +82,7 @@ class JSONErrorBottle(Bottle):
 
 app = JSONErrorBottle()
 app.wsgi = fix_environ_middleware(app.wsgi)
+
 
 def handle_new_submission(db, data, token):
     """bottles /submit endpoint calls here to handle processing the data
@@ -131,6 +135,8 @@ def requires_auth(func, db):
             return json.dumps({"error": "Sorry, unable to accept requests from you"})
         user, password = request.auth or (None, None)
         if user is None or not authlib.authenticate_user(db, user, password):
+            text = "Sorry unable to authenticate you"
+            realm = "Turtle"
             err = bottle.HTTPError(401, text)
             err.add_header("WWW-Authenticate", 'Basic realm="%s"' % realm)
             return err
@@ -142,7 +148,7 @@ def requires_auth(func, db):
 @app.route("/status")
 def status():
     """return a status for monitor checking."""
-    #log.debug(pprint.pformat(bottle.request.environ.keys()))
+    # log.debug(pprint.pformat(bottle.request.environ.keys()))
     ret = {
         "status": "OK",
     }
@@ -175,11 +181,12 @@ def server_static(filepath):
     # headers['Cache-Control'] = "public, max-age=600"
     return static_file(filepath, root=rootpath)  # , headers=headers)
 
+
 # @requires_auth
 @app.get("/now")
 def now(db):
     """show most recent location"""
-    log.info("now: Request from:%s" % bottle.request.environ['HTTP_X_FORWARDED_FOR'])
+    log.info("now: Request from:%s" % bottle.request.environ["HTTP_X_FORWARDED_FOR"])
     qry = "select timestamp,lat,long from locations order by timestamp desc limit 1;"
     row = db.execute(qry).fetchone()
     # Convert to python datetime:
@@ -191,7 +198,7 @@ def now(db):
     big_long = str(long)[0:8]
     omap_url = f"https://www.openstreetmap.org/?mlat={lat}&mlon={long}#map=12%2F{big_lat}%2F{big_long}&layers=N"
     amap_url = f"https://maps.apple.com/?sll={lat},{long}&address=%28{lat}%2C{long}%29&z=10&t=m"
-    weather = weatherapi.fetch_weather(big_lat,big_long)
+    weather = weatherapi.fetch_weather(big_lat, big_long)
     now = {
         "timestamp": row["timestamp"],
         "human_time": az_time.strftime("%Y/%m/%d %I:%M:%S %p %Z"),
@@ -206,11 +213,14 @@ def now(db):
     }
     return template("now", now=now)
 
+
 @app.get("/history")
 def history(db):
     """Show all history"""
-    log.info("history: Request from:%s" % bottle.request.environ['HTTP_X_FORWARDED_FOR'])
-    qry = "select timestamp,lat,long from locations where date(timestamp) > DATE('now', '-30 days') order by timestamp desc;" 
+    log.info(
+        "history: Request from:%s" % bottle.request.environ["HTTP_X_FORWARDED_FOR"]
+    )
+    qry = "select timestamp,lat,long from locations where date(timestamp) > DATE('now', '-30 days') order by timestamp desc;"
     rows = db.execute(qry).fetchall()
     dat = []
     for row in rows:
@@ -236,11 +246,12 @@ def history(db):
     step = 0
     if len(dat) > 1000:
         length = len(dat)
-        step = int(length/1000)
+        step = int(length / 1000)
         log.info("length > 1000 @ %s, stepping by %s" % (length, step))
         dat = dat[0:length:step]
     log.info("sending %s records to user" % len(dat))
     return template("history", dat=dat, step=step)
+
 
 def time_ago(ts):
     """calculate a human understandable time ago, given a unix timestamp"""
@@ -374,10 +385,11 @@ def create_db(dbpath):
     print("database created %s" % dbpath)
     return 0
 
+
 def setup_myconfig(db):
     """
     Allow one to hack the WSGI stuff for reverse proxies.
-    if you host on a path say /overland, 
+    if you host on a path say /overland,
     then url_proxy_hack will fix that up so /now works in routing.
 
     inserts:
@@ -392,8 +404,9 @@ def setup_myconfig(db):
     rows = c.execute(qry).fetchall()
     global myconfig
     myconfig = dict(rows)
-    log.debug("setting up hacks: %s ",pprint.pformat(myconfig.keys()))
-    #log.debug("setup_myconfig: %s", pprint.pformat(myconfig))
+    log.debug("setting up hacks: %s ", pprint.pformat(myconfig.keys()))
+    # log.debug("setup_myconfig: %s", pprint.pformat(myconfig))
+
 
 def main(args):
     """main
