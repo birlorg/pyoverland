@@ -35,6 +35,9 @@
  <script src="static/leaflet.js"
    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
    ></script>
+<link rel="stylesheet" href="static/style.css"
+   integrity="sha384-Q8ArFov05rPVloUmNoIz0u9anDtXjofxQNUHX9s7JuXmL15tsBL67LYmMJrVokiN"
+   />
 </head>
 <body>
 

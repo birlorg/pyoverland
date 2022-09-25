@@ -108,6 +108,10 @@ class Forecast(pydantic.BaseModel):
 
 
 class WeatherGov:
+    """
+    https://weather-gov.github.io/api/reporting-issues
+    email: nco.ops@noaa.gov
+    """
     def __init__(self, email: str, url: str = None):
         """Synchronous API for weather.gov API."""
         self.url = url or "https://api.weather.gov"
@@ -130,49 +134,15 @@ class WeatherGov:
         """return Forecast class"""
         loc = self.location(lat, long)
         r = httpx.get(loc.properties.forecast, headers=self.headers)
-        return Forecast.parse_raw(r.text)
+        try:
+            f = Forecast.parse_raw(r.text)
+        except pydantic.error_wrappers.ValidationError:
+            print("email to: nco.ops@noaa.gov")
+            print("unable to process:%s" % r.text)
+            return None
+        return f
 
-
-import asyncio
-
-import aiohttp
-
-import pynws
-import atos as sync
-
-USERID = "zie@birl.org"
-
-
-async def fetch(lat, long):
-    d = {}
-    async with aiohttp.ClientSession() as session:
-        nws = pynws.SimpleNWS(lat, long, USERID, session)
-        await nws.set_station()
-        await nws.update_observation()
-        await nws.update_forecast()
-        await nws.update_alerts_forecast_zone()
-        d["observation"] = nws.observation
-        d["forecast"] = nws.forecast[0]
-        d["forecasts"] = nws.forecast
-        d["alerts"] = nws.alerts_forecast_zone
-        # print(nws.observation)
-        # print(nws.forecast[0])
-        # print(nws.alerts_forecast_zone)
-        return d
-
-
-def get_weather(lat, long):
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(fetch(lat, long))
-
-
-def async_fetch_weather(lat, long):
-    try:
-        sync_result = sync.coroutine(fetch(lat, long))
-    except:
-        return None
-    return sync_result
-
+USERID = "tara@birl.org"
 
 def fetch_weather(lat, long):
     w = WeatherGov(USERID)
