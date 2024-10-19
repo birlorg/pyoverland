@@ -50,6 +50,9 @@ or for non nix, passing through a proxy is your problem :) Though I accept pull 
 
 NOTE: right now it's hardcoded to /overland/, so be sure to include that in the requests. (PR's accepted)
 
+running:
+ nix% cd /home/zie/src/pyoverland
+ nix% nix-shell --run "python main.py mydata.db"
 
 url: https://example.com/overland/
 

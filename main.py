@@ -7,6 +7,8 @@ Docs/urls
  * Sqlite:
     * json docs: https://sqlite.org/json1.html
 
+nix-shell --run "python main.py mydata.db"
+
 """
 from datetime import datetime, date, timedelta, timezone
 import os
@@ -83,6 +85,23 @@ class JSONErrorBottle(Bottle):
 app = JSONErrorBottle()
 app.wsgi = fix_environ_middleware(app.wsgi)
 
+def same_place(last_location,new_location):
+    """return bool if should be inserted or not.
+    If True, do not insert
+    if Fale, Insert.
+    """
+    now_x = new_location["geometry"]["coordinates"][1]
+    now_y = new_location["geometry"]["coordinates"][0]
+    last_x = last_location[0]
+    last_y = last_location[1]
+    diff_x = float(last_x) - float(now_x)
+    diff_y = float(last_y) - float(now_y)
+    diff = abs(diff_x) + abs(diff_y)
+    log.debug("same_place diff:%s",diff)
+    if diff > .1:
+        return False
+    else:
+        return True
 
 def handle_new_submission(db, data, token):
     """bottles /submit endpoint calls here to handle processing the data
@@ -93,6 +112,11 @@ def handle_new_submission(db, data, token):
     """
     token_id = token["rowid"]
     device_id = token["device_id"]
+    qry = "select timestamp,lat,long,device_id from locations order by timestamp desc limit 1;"
+    row = db.execute(qry).fetchone()
+    lat = row["lat"]
+    long = row["long"]
+    last_location = [lat,long]
     # log.debug("new submission: %s", pprint.pformat(data.keys()))
     for location in data["locations"]:
         if location["properties"]["device_id"] != device_id:
@@ -101,9 +125,13 @@ def handle_new_submission(db, data, token):
                 device_id,
                 location["properties"]["device_id"],
             )
-        db.execute(
-            "insert into locations VALUES (?,?,?,?,?,?,?,?)",
-            (
+        if same_place(last_location,location):
+            #skip inserting this record
+            log.info("skipped %d records", len(data["locations"]))
+        else:
+            db.execute(
+                "insert into locations VALUES (?,?,?,?,?,?,?,?)",
+                (
                 json.dumps(location),
                 location["properties"]["timestamp"],
                 location["properties"]["device_id"],
@@ -112,9 +140,15 @@ def handle_new_submission(db, data, token):
                 json.dumps(location["properties"]),
                 location["type"],
                 token_id,
-            ),
-        )
-    log.info("saved %d records", len(data["locations"]))
+                ),
+            )
+            log.info("saved %d records", len(data["locations"]))
+        # update last seen.
+        key="last_seen_%s" % device_id
+        qry ="update config set value=? where key='%s'" % key
+        log.info(qry)
+        db.execute(qry,(location["properties"]["timestamp"],))
+        db.commit()
     return {"result": "ok"}
 
 
@@ -187,18 +221,23 @@ def server_static(filepath):
 def now(db):
     """show most recent location"""
     log.info("now: Request from:%s" % bottle.request.environ["HTTP_X_FORWARDED_FOR"])
-    qry = "select timestamp,lat,long from locations order by timestamp desc limit 1;"
+    qry = "select timestamp,lat,long,device_id from locations order by timestamp desc limit 1;"
     row = db.execute(qry).fetchone()
     # Convert to python datetime:
     now_dt = datetime.strptime(row["timestamp"], "%Y-%m-%dT%H:%M:%S%z")
-    az_time = now_dt.astimezone(tz_mst)
+    last_seen = db.execute("select value from config where key='last_seen_%s'" % row["device_id"]).fetchone()["value"]
+    last_seen = datetime.strptime(last_seen,"%Y-%m-%dT%H:%M:%S%z")
+    az_time = last_seen.astimezone(tz_mst)
     lat = row["lat"]
     long = row["long"]
-    big_lat = str(lat)[0:7]
+    big_lat = str(lat)[0:8]
     big_long = str(long)[0:8]
     omap_url = f"https://www.openstreetmap.org/?mlat={lat}&mlon={long}#map=12%2F{big_lat}%2F{big_long}&layers=N"
     amap_url = f"https://maps.apple.com/?sll={lat},{long}&address=%28{lat}%2C{long}%29&z=10&t=m"
-    weather = weatherapi.fetch_weather(big_lat, big_long)
+    try:
+        weather = weatherapi.fetch_weather(big_lat, big_long)
+    except IndexError:
+        weather = {}
     now = {
         "timestamp": row["timestamp"],
         "human_time": az_time.strftime("%Y/%m/%d %I:%M:%S %p %Z"),
@@ -211,6 +250,7 @@ def now(db):
         "time_ago": time_ago(now_dt.timestamp()),
         "weather": weather,
     }
+    response.set_header("Cache-Control", "no-cache")
     return template("now", now=now)
 
 
@@ -229,7 +269,7 @@ def history(db):
         az_time = now_dt.astimezone(tz_mst)
         lat = row["lat"]
         long = row["long"]
-        big_lat = str(lat)[0:7]
+        big_lat = str(lat)[0:8]
         big_long = str(long)[0:8]
         url = f"https://www.openstreetmap.org/?mlat={lat}&mlon={long}#map=12%2F{big_lat}%2F{big_long}&layers=N"
         now = {

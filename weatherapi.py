@@ -4,6 +4,10 @@ import pydantic
 from typing import List, Optional, Union
 import datetime
 
+"""
+Currently use NOAA, Weather.gov, which is limited to the USA. Perhpas consider using Norway's API, which is for the globe: https://api.met.no/doc/GettingStarted
+"""
+
 
 class LocationProperties(pydantic.BaseModel):
     """
@@ -71,7 +75,7 @@ class ForecastPeriods(pydantic.BaseModel):
 
     detailedForecast: str
     endTime: datetime.datetime
-    icon: pydantic.HttpUrl
+    icon: str
     isDaytime: bool
     name: str
     number: int
@@ -93,7 +97,6 @@ class ForecastProperties(pydantic.BaseModel):
     periods: List[ForecastPeriods]
     units: str
     updateTime: datetime.datetime
-    updated: datetime.datetime
     validTimes: str
 
 
@@ -139,7 +142,8 @@ class WeatherGov:
         except pydantic.error_wrappers.ValidationError:
             print("email to: nco.ops@noaa.gov")
             print("unable to process:%s" % r.text)
-            return None
+            open('weather.out','w').write(r.text)
+            raise
         return f
 
 USERID = "tara@birl.org"
