@@ -1,0 +1,13 @@
+[Unit]
+Description=Pyoverlander web Service
+After=network.target
+
+[Service]
+User=zie
+Group=zie
+WorkingDirectory=/home/zie/src/pyoverlander
+ExecStartPre=/home/zie/src/pyoverlander/deploy/deploy.sh
+ExecStart=/home/zie/src/pyoverlander/deploy/prodstart.sh
+
+[Install]
+WantedBy=multi-user.target
