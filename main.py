@@ -216,7 +216,15 @@ def now(db):
 
 @app.get("/history")
 def history(db):
-    """Show all history"""
+    """Show all history
+
+    TODO: can we use sampling from SQL: https://blog.moertel.com/posts/2024-08-23-sampling-with-sql.html
+    something like: https://news.ycombinator.com/item?id=41905441
+    where weight might be age = current_timestamp ‒ created_at) 
+    weight = POW(2.0, -age / 3600)
+
+    instead of doing it in python like I do now.
+    """
     log.info(
         "history: Request from:%s" % bottle.request.environ["HTTP_X_FORWARDED_FOR"]
     )
