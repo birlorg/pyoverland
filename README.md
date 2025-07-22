@@ -18,7 +18,14 @@ Create the necessary tables:
 ```shell
 ./main.py newdb mydata.db
 sqlite3 mydata.db 
-insert into tokens (token,email,valid,device_id,extra,note) VALUES ('mytoken','me@example.com',1,'myphone','{}','token for my iphone');
+tokens            "email": "TEXT NOT NULL UNIQUE",
+            "perms": "JSON",
+            "used": "INTEGER",
+            "valid": "BOOL",
+            "device_id": "TEXT",
+            "extra": "JSON",
+            "note": "TEXT", P
+insert into capabilities (token,email,valid,device_id,extra,note) VALUES ('mytoken','me@example.com',1,'myphone','{}','token for my iphone');
 .quit
 ```
 

@@ -68,8 +68,16 @@ def authenticate_token(db, token):
 
     There is a timing attack here, but we are lazy.
         SQL is doing the comparison, shortening the time if no valid token.
+                    "token": "TEXT NOT NULL UNIQUE",
+            "email": "TEXT NOT NULL UNIQUE",
+            "perms": "JSON",
+            "used": "INTEGER",
+            "valid": "BOOL",
+            "device_id": "TEXT",
+            "extra": "JSON",
+            "note": "TEXT",
     """
-    qry = "select rowid,token,email,device_id,extra from tokens where valid is true and token=?;"
+    qry = "select rowid,token,email,device_id,extra from capabilities where valid is true and token=?;"
     row = db.execute(qry, (token,)).fetchone()
     if not row:
         log.debug("auth: no valid user entry found for: %s", token)

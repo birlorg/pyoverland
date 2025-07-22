@@ -176,7 +176,7 @@ def submit(db, token):
 def server_static(filepath):
     # headers = dict()
     response.set_header("Cache-Control", "public, max-age=120")
-    rootpath = "/home/zie/src/pyoverland/static/"
+    rootpath = "/home/zie/src/pyoverlander/static/"
     log.debug("rootpath:%s", rootpath)
     # headers['Cache-Control'] = "public, max-age=600"
     return static_file(filepath, root=rootpath)  # , headers=headers)
@@ -198,7 +198,8 @@ def now(db):
     big_long = str(long)[0:8]
     omap_url = f"https://www.openstreetmap.org/?mlat={lat}&mlon={long}#map=12%2F{big_lat}%2F{big_long}&layers=N"
     amap_url = f"https://maps.apple.com/?sll={lat},{long}&address=%28{lat}%2C{long}%29&z=10&t=m"
-    weather = weatherapi.fetch_weather(big_lat, big_long)
+    #weather = weatherapi.fetch_weather(big_lat, big_long)
+    weather = {}
     now = {
         "timestamp": row["timestamp"],
         "human_time": az_time.strftime("%Y/%m/%d %I:%M:%S %p %Z"),

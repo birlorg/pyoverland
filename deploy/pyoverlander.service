@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 User=zie
-Group=zie
+Group=linuxuser
 WorkingDirectory=/home/zie/src/pyoverlander
 ExecStartPre=/home/zie/src/pyoverlander/deploy/deploy.sh
 ExecStart=/home/zie/src/pyoverlander/deploy/prodstart.sh
